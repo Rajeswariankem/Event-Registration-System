@@ -8,6 +8,7 @@ import com.raaji.eventmanagement.exception.EventNotFoundException;
 import com.raaji.eventmanagement.repository.EventRepository;
 import com.raaji.eventmanagement.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,28 @@ public class ParticipantService {
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
     private final EmailService emailService;
+
+    @Autowired
+    private AsyncEmailService asyncEmailService;
+
+    public Participant registerParticipant(Long eventId, Participant participant) {
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow();
+
+        participant.setEvent(event);
+
+        Participant savedParticipant =
+                participantRepository.save(participant);
+
+        // background task
+        asyncEmailService.sendConfirmationEmail(
+                participant.getEmail(),
+                event.getEventName()
+        );
+
+        return savedParticipant;
+    }
 
     public ParticipantResponseDTO registerParticipant(
             Long eventId,
@@ -106,5 +129,7 @@ public class ParticipantService {
             return dto;
 
         }).collect(Collectors.toList());
+
+
     }
 }

@@ -817,9 +817,9 @@
             document.getElementById('registerParticipantForm').reset();
 
             // Reload latest events from backend
-            await fetchEvents();
-
             navigateTo('list');
+
+            fetchEvents();
         } else {
                 const errMsg = await response.text();
                 showToast(errMsg || "Registration rejected. Email might be a duplicate or event capacity is met.");
