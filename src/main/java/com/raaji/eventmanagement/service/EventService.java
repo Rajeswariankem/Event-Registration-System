@@ -73,12 +73,18 @@ public class EventService {
         return null;
     }
 
-    public String deleteEventById(int id){
-        Event existingEvent=eventRepository.findById((long) id).orElse(null);
-        if(existingEvent!=null){
+    public String deleteEventById(int id) {
+
+        Event existingEvent = eventRepository.findById((long) id)
+                .orElse(null);
+
+        if (existingEvent != null) {
+
             eventRepository.delete(existingEvent);
+
             return "Event deleted successfully";
         }
+
         return "Event not found";
     }
 }

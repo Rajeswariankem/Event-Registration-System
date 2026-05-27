@@ -12,7 +12,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 
@@ -29,9 +31,8 @@ public class Event {
     private String eventDate;
     private int capacity;
     @JsonManagedReference
-    @OneToMany(
-            mappedBy = "event",
+    @OneToMany(mappedBy = "event",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
-    private List<Participant> participants;
+    private List<Participant> participants = new ArrayList<>();
 }
