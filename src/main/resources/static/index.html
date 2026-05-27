@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventify - Event Management System</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Root Variables & Reset --- */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fee2e2;
+            --success: #10b981;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --transition: all 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header / Navigation --- */
+        .navbar {
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .badge {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+        }
+
+        /* --- Layout Container --- */
+        .container {
+            flex-grow: 1;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* --- Views State Management --- */
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        /* --- Utility CSS Elements --- */
+
+        .text-center { text-align: center; }
+        .max-w-md { max-width: 480px; margin: 0 auto; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .gap-4 { gap: 1rem; }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--surface);
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--background);
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .btn-link:hover {
+            color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: var(--radius-md);
+        }
+
+        /* --- Cards & Content Containers --- */
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .title-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .title-group h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .title-group p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* --- Grid & Event Cards --- */
+        .events-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .events-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .event-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .event-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .event-card-header {
+            margin-bottom: 1rem;
+            padding-right: 2rem;
+        }
+
+        .event-card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .event-card-location {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .event-card-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            space-y: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .event-card-meta p {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-top: auto;
+        }
+
+        .btn-delete {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger);
+        }
+
+        /* --- Form Styling --- */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: var(--transition);
+            background-color: var(--background);
+        }
+
+        .form-control:focus {
+            background-color: var(--surface);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* --- Selected Banner --- */
+        .selected-banner {
+            background-color: var(--primary-light);
+            border: 1px solid #c7d2fe;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .selected-banner-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+        }
+
+        .selected-banner-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 0.25rem;
+        }
+
+        /* --- Empty Placeholder State --- */
+        .empty-state {
+            background-color: var(--surface);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            background-color: var(--surface);
+            border-t: 1px solid var(--border);
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+
+        /* --- Custom Dialog / Modal Confirmation --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background-color: var(--surface);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 400px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow-md);
+            animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .modal-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* --- Simple Toast Banner --- */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 1000;
+            background-color: #0f172a;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            max-width: 350px;
+            width: calc(100% - 3rem);
+            transform: translateY(150px);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast-msg {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .toast-close:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header / Navigation Bar -->
+<header class="navbar">
+    <div class="navbar-container">
+        <div class="brand" onclick="navigateTo('home')">
+            <div class="brand-icon">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <span class="brand-name">Eventify</span>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content Container -->
+<main class="container">
+
+    <!-- 1. HOME VIEW -->
+    <section id="view-home" class="view-section active text-center" style="padding: 3rem 0;">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem;">
+                Simple Event Management System
+            </h1>
+            <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto; font-size: 1.05rem;">
+                Easily manage events, keep track of seat capacities, register attendees, and dispatch automatic confirmation emails.
+            </p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+            <button onclick="navigateTo('create')" class="btn btn-primary">
+                <i class="fa-solid fa-calendar-plus"></i>
+                <span>Register an Event</span>
+            </button>
+            <button onclick="navigateTo('list')" class="btn btn-secondary">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>View All Events</span>
+            </button>
+        </div>
+    </section>
+
+
+    <!-- 2. CREATE EVENT VIEW -->
+    <section id="view-create" class="view-section">
+        <div class="max-w-md">
+            <button onclick="navigateTo('home')" class="btn-link mb-6" style="margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </button>
+
+            <div class="card">
+                <div class="title-group">
+                    <h2><i class="fa-solid fa-calendar-plus" style="color: var(--primary);"></i> Create Event</h2>
+                </div>
+
+                <form id="createEventForm" onsubmit="handleCreateEvent(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="eventName">Event Name</label>
+                        <input type="text" id="eventName" required placeholder="e.g. Spring Boot Seminar" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="location">Location</label>
+                        <input type="text" id="location" required placeholder="e.g. Lab 3 / Online" class="form-control">
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="eventDate">Event Date</label>
+                            <input type="datetime-local" id="eventDate" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="capacity">Capacity</label>
+                            <input type="number" id="capacity" required min="1" placeholder="50" class="form-control">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                        Submit Event
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- 3. VIEW EVENTS VIEW -->
+    <section id="view-list" class="view-section">
+        <div class="flex-between title-group" style="align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+                <button onclick="navigateTo('home')" class="btn-link" style="margin-bottom: 0.5rem; display: block;">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                </button>
+                <h2 style="font-size: 1.75rem; font-weight: 700;">Registered Events</h2>
+            </div>
+            <button onclick="navigateTo('create')" class="btn btn-primary btn-sm">
+                + Add Event
+            </button>
+        </div>
+
+        <!-- Dynamic Grid -->
+        <div id="eventsGrid" class="events-grid">
+            <!-- Event cards injected here by JavaScript -->
+        </div>
+
+        <!-- No Events Placeholder -->
+        <div id="emptyEventsState" class="empty-state hidden">
+            <i class="fa-regular fa-calendar" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--border);"></i>
+            <p>No events found in the database system.</p>
+        </div>
+    </section>
+
+
+    <!-- 4. REGISTER PARTICIPANT VIEW -->
+    <section id="view-register" class="view-section">
+        <div class="max-w-md">
+            <button onclick="navigateTo('list')" class="btn-link" style="margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Events
+            </button>
+
+            <div class="card">
+                <div class="selected-banner">
+                    <p class="selected-banner-tag">Registering For</p>
+                    <h3 id="targetEventName" class="selected-banner-title">Event Name</h3>
+                </div>
+
+                <div class="title-group" style="margin-bottom: 1.25rem;">
+                    <h2 style="font-size: 1.25rem;">Participant Information</h2>
+                </div>
+
+                <form id="registerParticipantForm" onsubmit="handleRegisterParticipant(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="partName">Your Name</label>
+                        <input type="text" id="partName" required placeholder="John Doe" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="partEmail">Email Address</label>
+                        <input type="email" id="partEmail" required placeholder="johndoe@example.com" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="partPhone">Phone Number</label>
+                        <input type="tel" id="partPhone" required placeholder="1234567890" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                        Submit Registration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Custom Modal Dialogue Overlay (Replaces Window Confirm alert pop-ups) -->
+<div id="customConfirmModal" class="modal-overlay">
+    <div class="modal">
+        <h3 class="modal-title">Cancel Event</h3>
+        <p id="modalDescription" class="modal-desc">Are you sure you want to cancel this event? </p>
+        <div class="modal-actions">
+            <button id="modalCancelBtn" class="btn btn-secondary btn-sm">No, Keep It</button>
+            <button id="modalConfirmBtn" class="btn btn-primary btn-sm" style="background-color: var(--danger);">Yes, Cancel Event</button>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Toast Banner Container -->
+<div id="toast" class="toast">
+    <span id="toastMessage" class="toast-msg">Message placeholder</span>
+    <button class="toast-close" onclick="hideToast()"><i class="fa-solid fa-xmark"></i></button>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>&copy; 2026 Eventify Mini-Project. Built with Spring Boot, JPA & MySQL.</p>
+</footer>
+
+<!-- INTERACTION SCRIPTS -->
+<script>
+    // API Address Settings
+    const isLocalHTML = window.location.protocol === 'file:' || window.location.hostname === 'localhost';
+    const API_BASE_URL = isLocalHTML ? 'http://localhost:8080' : '';
+
+    let state = {
+        events: [],
+        selectedEvent: null,
+        deletionTargetId: null
+    };
+
+    // Simple Single-Page Router
+    function navigateTo(viewId) {
+        const sections = document.querySelectorAll('.view-section');
+        sections.forEach(sec => sec.classList.remove('active'));
+
+        const target = document.getElementById(`view-${viewId}`);
+        if (target) {
+            target.classList.add('active');
+        }
+
+        // Load logic when visiting events grid view
+        if (viewId === 'list') {
+            fetchEvents();
+        }
+    }
+
+    // FETCH ALL EVENTS
+    async function fetchEvents() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/events`);
+            if (response.ok) {
+                state.events = await response.json();
+                renderEvents([...state.events]);
+            } else {
+                showToast("Error retrieving events list from backend.");
+            }
+        } catch (err) {
+            showToast("Cannot connect to Spring Boot server.");
+        }
+    }
+
+    // RENDER EVENT CARDS TO GRID
+    function renderEvents(eventsList) {
+        const grid = document.getElementById('eventsGrid');
+        const emptyState = document.getElementById('emptyEventsState');
+        grid.innerHTML = '';
+
+        if (!eventsList || eventsList.length === 0) {
+            grid.style.display = 'none';
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        grid.style.display = 'grid';
+        emptyState.classList.add('hidden');
+
+        eventsList.forEach(event => {
+            const filledSeats = event.participants ? event.participants.length : 0;
+            const openSeats = event.capacity - filledSeats;
+
+            // Date formatting
+            const dateParsed = new Date(event.eventDate).toLocaleString([], {
+                dateStyle: 'medium', timeStyle: 'short'
+            });
+
+            const card = `
+                <div class="event-card">
+                    <!-- Delete Button (triggers cascade logic in backend) -->
+                    <button onclick="confirmDeletion(${event.id}, event)" class="btn-delete" title="Delete Event">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+
+                    <div class="event-card-header">
+                        <h3 class="event-card-title">${escapeHTML(event.eventName)}</h3>
+                        <p class="event-card-location"><i class="fa-solid fa-map-pin"></i> ${escapeHTML(event.location)}</p>
+                    </div>
+
+                    <div class="event-card-meta">
+                        <p><i class="fa-solid fa-calendar"></i> ${dateParsed}</p>
+                        <p><i class="fa-solid fa-users"></i> Capacity: ${filledSeats}/${event.capacity} seats filled</p>
+                    </div>
+
+                    <!-- Register Action Button -->
+                    <div class="card-footer">
+                        ${openSeats <= 0
+                            ? `<button disabled class="btn btn-secondary btn-sm" style="width: 100%; cursor: not-allowed; opacity: 0.6;">Capacity Full</button>`
+                            : `<button onclick="goToRegister(${JSON.stringify(event).replace(/"/g, '&quot;')})" class="btn btn-primary btn-sm" style="width: 100%;">Register Participant</button>`
+                        }
+                    </div>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', card);
+        });
+    }
+
+    // SUBMIT CREATE EVENT
+    async function handleCreateEvent(e) {
+        e.preventDefault();
+
+        const payload = {
+            eventName: document.getElementById('eventName').value.trim(),
+            location: document.getElementById('location').value.trim(),
+            eventDate: document.getElementById('eventDate').value,
+            capacity: parseInt(document.getElementById('capacity').value, 10)
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                showToast("Event published successfully!");
+                document.getElementById('createEventForm').reset();
+                navigateTo('list');
+            } else {
+                const errMsg = await response.text();
+                showToast(errMsg || "Error creating event.");
+            }
+        } catch (err) {
+            showToast("Connection to Server failed.");
+        }
+    }
+
+    // ROUTE TO REGISTRATION FORM
+    function goToRegister(event) {
+        state.selectedEvent = event;
+        document.getElementById('targetEventName').innerText = event.eventName;
+        document.getElementById('registerParticipantForm').reset();
+        navigateTo('register');
+    }
+
+    // SUBMIT REGISTER PARTICIPANT (Dispatches email confirmation on success)
+    async function handleRegisterParticipant(e) {
+        e.preventDefault();
+
+        if (!state.selectedEvent) return;
+
+        const payload = {
+            name: document.getElementById('partName').value.trim(),
+            email: document.getElementById('partEmail').value.trim(),
+            phoneNumber: document.getElementById('partPhone').value.trim()
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/events/${state.selectedEvent.id}/participants`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+        if (response.ok) {
+            showToast("Registration Confirmed! Email receipt sent.");
+
+            document.getElementById('registerParticipantForm').reset();
+
+            // Reload latest events from backend
+            await fetchEvents();
+
+            navigateTo('list');
+        } else {
+                const errMsg = await response.text();
+                showToast(errMsg || "Registration rejected. Email might be a duplicate or event capacity is met.");
+            }
+        } catch (err) {
+            showToast("Server connection failure.");
+        }
+    }
+
+    // MODAL HANDLERS (Alternative to browser confirm dialogue)
+    function confirmDeletion(id, e) {
+        e.stopPropagation();
+        state.deletionTargetId = id;
+        document.getElementById('customConfirmModal').classList.add('show');
+    }
+
+    function closeConfirmationModal() {
+        state.deletionTargetId = null;
+        document.getElementById('customConfirmModal').classList.remove('show');
+    }
+
+    // Set up confirmation button actions
+    document.getElementById('modalCancelBtn').addEventListener('click', closeConfirmationModal);
+    document.getElementById('modalConfirmBtn').addEventListener('click', async () => {
+        if (state.deletionTargetId) {
+            await executeDeleteEvent(state.deletionTargetId);
+        }
+        closeConfirmationModal();
+    });
+
+    // EXECUTE DELETE EVENT (Dispatches event cancellation emails on success)
+    async function executeDeleteEvent(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/events/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showToast("Event cancelled and deleted.");
+                fetchEvents();
+            } else {
+                showToast("Could not delete this event.");
+            }
+        } catch (err) {
+            showToast("Server communication error.");
+        }
+    }
+
+    // Simple Toast Notification Handler
+    function showToast(message) {
+        const el = document.getElementById('toast');
+        const msgEl = document.getElementById('toastMessage');
+        msgEl.innerText = message;
+
+        el.classList.add('show');
+
+        // Autohide toast after 5 seconds
+        setTimeout(() => {
+            hideToast();
+        }, 5000);
+    }
+
+    function hideToast() {
+        const el = document.getElementById('toast');
+        el.classList.remove('show');
+    }
+
+    // Simple HTML Escaper utility
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g,
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+</script>
+</body>
+</html>

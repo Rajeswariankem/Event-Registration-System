@@ -5,12 +5,14 @@ import com.raaji.eventmanagement.dto.EventResponseDTO;
 import com.raaji.eventmanagement.service.EventService;
 import com.raaji.eventmanagement.entity.Event;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/events")
+@CrossOrigin(origins = "*")
 public class EventController {
     private final EventService eventService;
     public EventController(EventService eventService) {
@@ -40,7 +42,11 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteEventById(@PathVariable int id){
-        return eventService.deleteEventById(id);
+    public ResponseEntity<String>
+    deleteEvent(@PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                eventService.deleteEvent(id));
     }
+
 }

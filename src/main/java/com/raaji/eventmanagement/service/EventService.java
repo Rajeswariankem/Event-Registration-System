@@ -6,14 +6,37 @@ import com.raaji.eventmanagement.repository.EventRepository;
 import org.springframework.stereotype.Service;
 import com.raaji.eventmanagement.dto.EventRequestDTO;
 import com.raaji.eventmanagement.dto.EventResponseDTO;
+import com.raaji.eventmanagement.entity.Participant;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class EventService {
     private final EventRepository eventRepository;
-    public  EventService(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    private final EmailService emailService;
+
+    public String deleteEvent(Long id) {
+
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() ->
+                        new EventNotFoundException(
+                                "Event not found"));
+
+        for (Participant participant :
+                event.getParticipants()) {
+
+            emailService.sendCancellationEmail(
+                    participant.getEmail(),
+                    participant.getName(),
+                    event.getEventName());
+        }
+
+        eventRepository.delete(event);
+
+        return "Event deleted successfully";
     }
+
     public EventResponseDTO createEvent(EventRequestDTO dto) {
         Event event = new Event();
         event.setEventName(dto.getEventName());
@@ -35,10 +58,10 @@ public class EventService {
         return eventRepository.findAll();
     }
     public Event getEventById(int id){
-        return eventRepository.findById(id).orElseThrow(()->new EventNotFoundException("Event not found with id "+id));
+        return eventRepository.findById((long) id).orElseThrow(()->new EventNotFoundException("Event not found with id "+id));
     }
     public Event updateEvent(int id,Event updtaedevent){
-        Event existingEvent=eventRepository.findById(id).orElse(null);
+        Event existingEvent=eventRepository.findById((long) id).orElse(null);
         if(existingEvent!=null){
             existingEvent.setEventName(updtaedevent.getEventName());
             existingEvent.setLocation(updtaedevent.getLocation());
@@ -51,7 +74,7 @@ public class EventService {
     }
 
     public String deleteEventById(int id){
-        Event existingEvent=eventRepository.findById(id).orElse(null);
+        Event existingEvent=eventRepository.findById((long) id).orElse(null);
         if(existingEvent!=null){
             eventRepository.delete(existingEvent);
             return "Event deleted successfully";

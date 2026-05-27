@@ -25,4 +25,25 @@ public class GlobalExceptionHandler {
         });
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(EventCapacityFullException.class)
+    public ResponseEntity<String>
+    handleCapacityFull(
+            EventCapacityFullException ex) {
+
+        return new ResponseEntity<>(
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(
+            DuplicateRegistrationException.class)
+    public ResponseEntity<String>
+    handleDuplicateRegistration(
+            DuplicateRegistrationException ex) {
+
+        return new ResponseEntity<>(
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST);
+    }
 }
