@@ -22,25 +22,25 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
-    private final EmailService emailService;
+//    private final EmailService emailService;
 
-    @Autowired
-    private AsyncEmailService asyncEmailService;
+//    @Autowired
+//    private AsyncEmailService asyncEmailService;
 
     @Transactional
     public Participant registerParticipant(Long eventId, Participant participant) {
         Event event = eventRepository.findById(eventId).orElseThrow();
         participant.setEvent(event);
         Participant savedParticipant = participantRepository.save(participant);
-
-        try {
-            asyncEmailService.sendConfirmationEmail(
-                    participant.getEmail(),
-                    event.getEventName()
-            );
-        } catch (Exception e) {
-            System.err.println("Async email failed: " + e.getMessage());
-        }
+//
+//        try {
+//            asyncEmailService.sendConfirmationEmail(
+//                    participant.getEmail(),
+//                    event.getEventName()
+//            );
+//        } catch (Exception e) {
+//            System.err.println("Async email failed: " + e.getMessage());
+//        }
 
         return savedParticipant;
     }
@@ -73,16 +73,16 @@ public class ParticipantService {
         Participant savedParticipant = participantRepository.save(participant);
 
         // SAFELY TRY TO SEND THE EMAIL HERE
-        try {
-            emailService.sendRegistrationEmail(
-                    savedParticipant.getEmail(),
-                    savedParticipant.getName(),
-                    savedParticipant.getEvent().getEventName()
-            );
-        } catch (Exception e) {
-            // This catches the connection timeout and prevents a 500 server error!
-            System.err.println("Email connection timed out, but candidate registration succeeded: " + e.getMessage());
-        }
+//        try {
+//            emailService.sendRegistrationEmail(
+//                    savedParticipant.getEmail(),
+//                    savedParticipant.getName(),
+//                    savedParticipant.getEvent().getEventName()
+//            );
+//        } catch (Exception e) {
+//            // This catches the connection timeout and prevents a 500 server error!
+//            System.err.println("Email connection timed out, but candidate registration succeeded: " + e.getMessage());
+//        }
 
         // Build and return the response DTO
         ParticipantResponseDTO responseDTO = new ParticipantResponseDTO();

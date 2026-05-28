@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class EventService {
     private final EventRepository eventRepository;
-    private final EmailService emailService;
+//    private final EmailService emailService;
 
     public String deleteEvent(Long id) {
 
@@ -24,14 +24,14 @@ public class EventService {
                         new EventNotFoundException(
                                 "Event not found"));
 
-        for (Participant participant :
-                event.getParticipants()) {
-
-            emailService.sendCancellationEmail(
-                    participant.getEmail(),
-                    participant.getName(),
-                    event.getEventName());
-        }
+//        for (Participant participant :
+//                event.getParticipants()) {
+//
+//            emailService.sendCancellationEmail(
+//                    participant.getEmail(),
+//                    participant.getName(),
+//                    event.getEventName());
+//        }
 
         eventRepository.delete(event);
 
@@ -75,12 +75,14 @@ public class EventService {
     }
 
     @Transactional
-    public String deleteEventById(int id) {
+    public String deleteEventById(Long id) {
 
-        Event existingEvent = eventRepository.findById((long) id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() ->
+                        new EventNotFoundException(
+                                "Event not found"));
 
-        eventRepository.delete(existingEvent);
+        eventRepository.delete(event);
 
         return "Event deleted successfully";
     }
