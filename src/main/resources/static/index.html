@@ -812,7 +812,7 @@
             });
 
         if (response.ok) {
-            showToast("Registration Confirmed! Email receipt sent.");
+            showToast("Registration Confirmed!");
 
             document.getElementById('registerParticipantForm').reset();
 
@@ -822,7 +822,7 @@
             fetchEvents();
         } else {
                 const errMsg = await response.text();
-                showToast(errMsg || "Registration rejected. Email might be a duplicate or event capacity is met.");
+                showToast(errMsg || "Registration rejected!");
             }
         } catch (err) {
             showToast("Server connection failure.");
