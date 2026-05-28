@@ -1,8 +1,9 @@
 # 🎉 Event Management System
 
+🔗 **Live Demo:** https://event-registration-system-j2yf.onrender.com
+
 A modern full-stack Event Management application developed using Spring Boot, HTML, CSS, and JavaScript with an interactive and responsive user interface.
 
----
 
 ## 🚀 Features
 
