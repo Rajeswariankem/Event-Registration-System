@@ -3,6 +3,7 @@ package com.raaji.eventmanagement.service;
 import com.raaji.eventmanagement.entity.Event;
 import com.raaji.eventmanagement.exception.EventNotFoundException;
 import com.raaji.eventmanagement.repository.EventRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.raaji.eventmanagement.dto.EventRequestDTO;
 import com.raaji.eventmanagement.dto.EventResponseDTO;
@@ -73,18 +74,14 @@ public class EventService {
         return null;
     }
 
+    @Transactional
     public String deleteEventById(int id) {
 
         Event existingEvent = eventRepository.findById((long) id)
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        if (existingEvent != null) {
+        eventRepository.delete(existingEvent);
 
-            eventRepository.delete(existingEvent);
-
-            return "Event deleted successfully";
-        }
-
-        return "Event not found";
+        return "Event deleted successfully";
     }
 }

@@ -3,10 +3,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,9 +11,6 @@ import lombok.AllArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
 
 @Entity
 @Data
@@ -33,6 +27,7 @@ public class Event {
     @JsonManagedReference
     @OneToMany(mappedBy = "event",
             cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private List<Participant> participants = new ArrayList<>();
 }
