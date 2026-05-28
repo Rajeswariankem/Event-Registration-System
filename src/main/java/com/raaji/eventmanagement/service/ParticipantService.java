@@ -7,6 +7,7 @@ import com.raaji.eventmanagement.entity.Participant;
 import com.raaji.eventmanagement.exception.EventNotFoundException;
 import com.raaji.eventmanagement.repository.EventRepository;
 import com.raaji.eventmanagement.repository.ParticipantRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class ParticipantService {
     @Autowired
     private AsyncEmailService asyncEmailService;
 
+    @Transactional
     public Participant registerParticipant(Long eventId, Participant participant) {
 
         Event event = eventRepository.findById(eventId)

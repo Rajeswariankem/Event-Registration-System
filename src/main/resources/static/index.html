@@ -852,6 +852,11 @@
 
     // EXECUTE DELETE EVENT (Dispatches event cancellation emails on success)
     async function executeDeleteEvent(id) {
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+
+        deleteButtons.forEach(btn => {
+            btn.disabled = true;
+        });
         try {
             const response = await fetch(`${API_BASE_URL}/events/${id}`, {
                 method: 'DELETE'
