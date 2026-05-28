@@ -13,10 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.raaji.eventmanagement.exception
-        .EventCapacityFullException;
-import com.raaji.eventmanagement.exception
-        .DuplicateRegistrationException;
+import com.raaji.eventmanagement.exception.EventCapacityFullException;
+import com.raaji.eventmanagement.exception.DuplicateRegistrationException;
 
 @Service
 @RequiredArgsConstructor
@@ -31,107 +29,83 @@ public class ParticipantService {
 
     @Transactional
     public Participant registerParticipant(Long eventId, Participant participant) {
-
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow();
-
+        Event event = eventRepository.findById(eventId).orElseThrow();
         participant.setEvent(event);
+        Participant savedParticipant = participantRepository.save(participant);
 
-        Participant savedParticipant =
-                participantRepository.save(participant);
-
-        // background task
-        asyncEmailService.sendConfirmationEmail(
-                participant.getEmail(),
-                event.getEventName()
-        );
+        try {
+            asyncEmailService.sendConfirmationEmail(
+                    participant.getEmail(),
+                    event.getEventName()
+            );
+        } catch (Exception e) {
+            System.err.println("Async email failed: " + e.getMessage());
+        }
 
         return savedParticipant;
     }
 
-    public ParticipantResponseDTO registerParticipant(
-            Long eventId,
-            ParticipantRequestDTO dto) {
+    @Transactional // Added transactional to ensure DB consistency
+    public ParticipantResponseDTO registerParticipant(Long eventId, ParticipantRequestDTO dto) {
 
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() ->
-                        new EventNotFoundException(
-                                "Event not found with id: " + eventId));
-        long participantCount =
-                participantRepository.countByEventId(eventId);
+                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+
+        long participantCount = participantRepository.countByEventId(eventId);
 
         if (participantCount >= event.getCapacity()) {
+            throw new EventCapacityFullException("Event registration is full");
+        }
 
-            throw new EventCapacityFullException(
-                    "Event registration is full");
+        boolean alreadyRegistered = participantRepository
+                .existsByEmailAndEventId(dto.getEmail(), eventId);
+
+        if (alreadyRegistered) {
+            throw new DuplicateRegistrationException("Participant already registered for this event");
         }
 
         Participant participant = new Participant();
-
         participant.setName(dto.getName());
         participant.setEmail(dto.getEmail());
         participant.setPhoneNumber(dto.getPhoneNumber());
-
         participant.setEvent(event);
 
-        boolean alreadyRegistered =
-                participantRepository
-                        .existsByEmailAndEventId(
-                                dto.getEmail(),
-                                eventId);
+        Participant savedParticipant = participantRepository.save(participant);
 
-        if (alreadyRegistered) {
-
-            throw new DuplicateRegistrationException(
-                    "Participant already registered for this event");
+        // SAFELY TRY TO SEND THE EMAIL HERE
+        try {
+            emailService.sendRegistrationEmail(
+                    savedParticipant.getEmail(),
+                    savedParticipant.getName(),
+                    savedParticipant.getEvent().getEventName()
+            );
+        } catch (Exception e) {
+            // This catches the connection timeout and prevents a 500 server error!
+            System.err.println("Email connection timed out, but candidate registration succeeded: " + e.getMessage());
         }
 
-        Participant savedParticipant =
-                participantRepository.save(participant);
-
-        emailService.sendRegistrationEmail(
-                savedParticipant.getEmail(),
-                savedParticipant.getName(),
-                savedParticipant.getEvent().getEventName()
-        );
-
-        ParticipantResponseDTO responseDTO =
-                new ParticipantResponseDTO();
-
+        // Build and return the response DTO
+        ParticipantResponseDTO responseDTO = new ParticipantResponseDTO();
         responseDTO.setId(savedParticipant.getId());
         responseDTO.setName(savedParticipant.getName());
         responseDTO.setEmail(savedParticipant.getEmail());
         responseDTO.setPhoneNumber(savedParticipant.getPhoneNumber());
-        responseDTO.setEventName(
-                savedParticipant.getEvent().getEventName());
+        responseDTO.setEventName(savedParticipant.getEvent().getEventName());
 
         return responseDTO;
     }
 
-    public List<ParticipantResponseDTO>
-    getParticipantsByEvent(Long eventId) {
-
-        List<Participant> participants =
-                participantRepository.findByEventId(eventId);
+    public List<ParticipantResponseDTO> getParticipantsByEvent(Long eventId) {
+        List<Participant> participants = participantRepository.findByEventId(eventId);
 
         return participants.stream().map(participant -> {
-
-            ParticipantResponseDTO dto =
-                    new ParticipantResponseDTO();
-
+            ParticipantResponseDTO dto = new ParticipantResponseDTO();
             dto.setId(participant.getId());
             dto.setName(participant.getName());
             dto.setEmail(participant.getEmail());
-            dto.setPhoneNumber(
-                    participant.getPhoneNumber());
-
-            dto.setEventName(
-                    participant.getEvent().getEventName());
-
+            dto.setPhoneNumber(participant.getPhoneNumber());
+            dto.setEventName(participant.getEvent().getEventName());
             return dto;
-
         }).collect(Collectors.toList());
-
-
     }
 }
